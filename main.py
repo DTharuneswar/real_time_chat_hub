@@ -1,15 +1,18 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles  
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict
-# import asyncio
+import asyncio
 import json
 import logging
+import csv
+import os
 from datetime import datetime
 
 app = FastAPI(title="RealTime Chat Hub", version="1.0.0")
-9
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  
@@ -18,8 +21,7 @@ app.add_middleware(
     allow_headers=["*"],  
 )
 
-
-
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -30,9 +32,15 @@ class Message(BaseModel):
     timestamp: str
 
 class ConnectionManager:
-    def _init_(self):
+    def __init__(self):
         self.active_connections: Dict[str, WebSocket] = {}
         self.message_history: List[Message] = []
+        self.csv_file_path = "message_history.csv"
+        # Create CSV file and write header if it doesn't exist
+        if not os.path.exists(self.csv_file_path):
+            with open(self.csv_file_path, mode='w', newline='') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(["sender", "message", "time"])
 
     async def connect(self, client_id: str, websocket: WebSocket):
         await websocket.accept()
@@ -52,14 +60,19 @@ class ConnectionManager:
 
     def add_to_history(self, message: Message):
         self.message_history.append(message)
+        self.append_to_csv(message)
         if len(self.message_history) > 100:  
             self.message_history.pop(0)
+
+    def append_to_csv(self, message: Message):
+        with open(self.csv_file_path, mode='a', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow([message.client_id, message.content, message.timestamp])
 
 manager = ConnectionManager()
 
 @app.get("/", response_class=HTMLResponse)
 async def get():
-    
     with open("static/wbindex.html", "r") as file:
         html_content = file.read()
     return HTMLResponse(content=html_content, status_code=200)
@@ -96,4 +109,4 @@ async def http_exception_handler(request, exc):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="10.70.9.233", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
