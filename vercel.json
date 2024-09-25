@@ -1,0 +1,14 @@
+{
+    "builds":[
+        {
+            "src":"Real_time_chat/chatroom.py",
+            "use":"@vercel/python"
+        }
+    ],
+    "routes":[
+        {
+            "src":"/(.*)",
+            "dest":"Real_time_chat/chatroom.py"
+        }
+    ]
+}
