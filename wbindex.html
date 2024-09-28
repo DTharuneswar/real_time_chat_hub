@@ -157,7 +157,7 @@
             document.getElementById("chat-interface").classList.remove("d-none");
 
             //const ws_url = `ws://10.70.9.233:8000/ws/${encodeURIComponent(clientId)}`;
-            const ws_url = `wss://${window.location.host}/ws/${encodeURIComponent(clientId)}`;
+            const ws_url = `ws://${window.location.host}/ws/${encodeURIComponent(clientId)}`;
             socket = new WebSocket(ws_url);
 
             socket.onopen = function(event) {
