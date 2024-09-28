@@ -114,63 +114,50 @@
 #     import uvicorn
 #     uvicorn.run(app, host="0.0.0.0", port=8000)
 from fastapi import FastAPI, WebSocket
-from fastapi.responses import HTMLResponse
 from fastapi.websockets import WebSocketDisconnect
+import asyncio
+import threading
+import websocket
 
 app = FastAPI()
 
-# A simple HTML page for testing the WebSocket
-html = """
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>WebSocket Chat</title>
-    </head>
-    <body>
-        <h1>WebSocket Chat</h1>
-        <input id="messageInput" type="text" placeholder="Type a message...">
-        <button id="sendButton">Send</button>
-        <ul id="messages"></ul>
-        <script>
-            const ws = new WebSocket("ws://localhost:8000/ws");
-            const messages = document.getElementById("messages");
-            const input = document.getElementById("messageInput");
-            const button = document.getElementById("sendButton");
-
-            button.onclick = () => {
-                const message = input.value;
-                ws.send(message);
-                input.value = '';
-            };
-
-            ws.onmessage = (event) => {
-                const li = document.createElement("li");
-                li.textContent = event.data;
-                messages.appendChild(li);
-            };
-
-            ws.onclose = () => {
-                console.log("WebSocket closed");
-            };
-        </script>
-    </body>
-</html>
-"""
-
-# Route to serve the HTML page
-@app.get("/")
-async def get():
-    return HTMLResponse(html)
-
-# WebSocket endpoint
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     try:
         while True:
-            data = await websocket.receive_text()
-            await websocket.send_text(f"Message received: {data}")
+            await websocket.send_text("hiii")
+            await asyncio.sleep(10)  # Wait for 10 seconds
     except WebSocketDisconnect:
         print("Client disconnected")
 
-# Run the app with: uvicorn app:app --reload
+def start_server():
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+
+def on_message(ws, message):
+    print(message)
+
+def on_error(ws, error):
+    print(error)
+
+def on_close(ws):
+    print("### closed ###")
+
+def on_open(ws):
+    print("Connected to WebSocket")
+
+def start_client():
+    ws = websocket.WebSocketApp("wss://0.0.0.0:8000/ws",
+                                  on_message=on_message,
+                                  on_error=on_error,
+                                  on_close=on_close)
+    ws.on_open = on_open
+    ws.run_forever()
+
+if __name__ == "__main__":
+    # Start the FastAPI server in a separate thread
+    threading.Thread(target=start_server).start()
+    
+    # Start the WebSocket client
+    start_client()
