@@ -73,7 +73,7 @@ manager = ConnectionManager()
 
 @app.get("/", response_class=HTMLResponse)
 async def get():
-    with open("static/wbindex.html", "r") as file:
+    with open("wbindex.html", "r") as file:
         html_content = file.read()
     return HTMLResponse(content=html_content, status_code=200)
 
