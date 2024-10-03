@@ -20,8 +20,9 @@ app.add_middleware(
     allow_methods=["*"],  
     allow_headers=["*"],  
 )
+# app.mount("/static", StaticFiles(directory="path/to/static"), name="static")
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# app.mount("/static", StaticFiles(directory="static"), name="static")
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ class ConnectionManager:
         self.active_connections: Dict[str, WebSocket] = {}
         self.message_history: List[Message] = []
         self.csv_file_path = "message_history.csv"
-        
+        # Create CSV file and write header if it doesn't exist
         if not os.path.exists(self.csv_file_path):
             with open(self.csv_file_path, mode='w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
@@ -109,4 +110,4 @@ async def http_exception_handler(request, exc):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app)
+    uvicorn.run(app, host="0.0.0.0", port=8000)
