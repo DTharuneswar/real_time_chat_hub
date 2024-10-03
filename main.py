@@ -36,7 +36,7 @@ class ConnectionManager:
         self.active_connections: Dict[str, WebSocket] = {}
         self.message_history: List[Message] = []
         self.csv_file_path = "message_history.csv"
-        # Create CSV file and write header if it doesn't exist
+        
         if not os.path.exists(self.csv_file_path):
             with open(self.csv_file_path, mode='w', newline='') as csvfile:
                 writer = csv.writer(csvfile)
@@ -109,4 +109,4 @@ async def http_exception_handler(request, exc):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app)
